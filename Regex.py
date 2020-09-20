@@ -8,6 +8,8 @@ The program throws exceptions for invalid entries such as '*' at the beginning.
 
 I have also wrote a test file that is not commited to the repository.
 Please select the Regex.py and run the program. 
+
+Output format is a list of arrays. Each array includes 3 numbers as follows for the matched characters: {..., [ lineNumber , startIndex , endIndex] ,... }
 """
 from Console import * 
 from RegexEntry import * 
