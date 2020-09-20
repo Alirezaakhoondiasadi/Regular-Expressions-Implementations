@@ -6,30 +6,49 @@ class RegexEntry:
     InputString = ''
     OutputString = ''
     indices = []
+    resultNum = 1
     def SetInputs(self,  pattern , inputString) : 
         self.OutputString = ''
         self.Pattern = pattern
         self.InputString = inputString
         self.FindRegex()
     
+    # This function finds the regular expression for each single line and saves the indices into a list
     def AdvFindDot( self , lineId , input , pattern) : 
         patternLenght = len(pattern) 
         
         if (len(input) < patternLenght):
             return
         
+        # Scan through the line to find the first character of pattern and if successful checks the next character 
+        # with the second pattern charactor. special pattern characters have been taken into consideration as well.
         j = 0 
         for i in range (0 , len(input) ) :
-            if  (input[i] == pattern[j] ) or pattern[j] == '.': 
-                j+=1
-                if(j == patternLenght): 
+            if (input[i] == pattern[j]  or pattern[j] == '.') or (pattern[j] == '*'): 
+                if(pattern[j] == '*') : 
+                    if input[i] == pattern[j-1]:
+                        j+=1
+                else :
+                    j+=1
+                if (j == patternLenght) : 
                     self.indices.append([lineId ,  i - patternLenght + 1 , i])
                     j = 0 
+
+                elif(pattern[j] == '*' and j == patternLenght-1) :
+                    if i < len(input) -1 :
+                        if(input[i+1] == pattern[j-1]) : 
+                            self.indices.append([lineId ,  i - patternLenght + 2 , i+1])
+                            j = 0
+                        else : 
+                            self.indices.append([lineId ,  i - patternLenght + 2 , i])
+                            j = 0 
+                    else:
+                            self.indices.append([lineId ,  i - patternLenght + 2 , i])
+                            j = 0 
         
     def FindRegex(self):
-        # print('Pattern is : ' + self.Pattern + '\n')
-        # print('Input String is : ' + self.InputString + '\n')
 
+        # Check for the edge cases
         if self.Pattern == '':
             raise Exception("Invalid pattern, please try again.")
         if self.InputString == '':
@@ -38,24 +57,12 @@ class RegexEntry:
         lineId = 0  
         self.indices = []
         for line in self.InputString.splitlines() :
-            print(line)
-
-            # . and * operations are not supported at the same time
-            if ( self.Pattern.find('.') != -1) and (self.Pattern.find('*') != -1 ):
-                raise Exception(". and * are not supported at the same time, please try again.")
-
-            # # if there was no special character 
-            # elif (self.Pattern.find('.') == -1) and (self.Pattern.find('*') == -1):
-            #     while line.find(self.Pattern) != -1 : 
-            #         self.indices.append( [lineId , line.find(self.Pattern) , line.find(self.Pattern) + patternLength] )
-            #         line = line [line.find (self.Pattern) + patternLength + 1 :] 
-            elif (self.Pattern.find('*') == -1):
-                self.AdvFindDot(lineId , line  , self.Pattern)
-
+            # Star character is not valid at the beginning of the pattern 
+            if(self.Pattern.find('*') == 0 ):
+                raise Exception("Invalid Regular Expression input (* cannot be at the beginning).")
+            self.AdvFindDot(lineId , line  , self.Pattern)
             lineId += 1
 
-        displayOutputs(self.indices)
+        displayOutputs(self.indices , self.resultNum)
         print( self.indices )
-
-
-    
+        self.resultNum+=1
